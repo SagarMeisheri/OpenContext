@@ -1,8 +1,6 @@
-# 🌐 OpenContext — Free News Search for AI Agents
+# 🌐 OpenContext — Free News Search API for AI Agents
 
-> **An experiment to make news-based web search free for AI agents.**
-
-OpenContext is an attempt to build a **free news search API** by combining RSS feeds (Google News + others) with **Elasticsearch indexing** and **LLM-powered Q&A synthesis** — avoiding expensive search API subscriptions.
+> **Building a public, free news search API powered by RSS feeds and Elasticsearch.**
 
 <p align="center">
   <img src="https://img.shields.io/badge/News%20Search-RSS%20Based-4285F4?style=for-the-badge" alt="RSS Based"/>
@@ -14,154 +12,123 @@ OpenContext is an attempt to build a **free news search API** by combining RSS f
 
 ## 📋 Table of Contents
 
-- [The Problem](#-the-problem-expensive-web-search-apis)
-- [The Solution](#-opencontext-approach)
+- [What is OpenContext?](#-what-is-opencontext)
+- [Why? (The Problem)](#-why-web-search-apis-are-expensive)
+- [How It Works](#-how-it-works)
 - [Limitations](#%EF%B8%8F-limitations)
-- [Architecture](#%EF%B8%8F-architecture)
-- [Quick Start](#-quick-start)
-- [API Reference](#-api-endpoints)
-- [Contributing](#-contributing--collaboration)
+- [Current Status](#-current-status)
+- [Try It Locally](#-try-it-locally)
+- [API Reference](#-api-reference)
+- [Contributing](#-contributing)
+- [Roadmap](#-roadmap)
+- [Technical Details](#-technical-details)
 
 ---
 
-## 💸 The Problem: Expensive Web Search APIs
+## 🎯 What is OpenContext?
 
-Building AI agents with web search capabilities gets expensive fast.
+OpenContext is an attempt to create a **free, public news search API** that AI agents can use without paying for expensive search subscriptions.
 
-### Web Search API Pricing Comparison
+**The idea:**
+- Build a shared Elasticsearch index with news Q&A data
+- Anyone can query it for free
+- Data comes from free RSS feeds (Google News, etc.) + Open Source LLM synthesis
+- The more the community uses it, the better the index becomes
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                                                                │
+│   🌐 Public OpenContext API (the goal)                         │
+│                                                                │
+│   ┌──────────────────────────────────────────┐                 │
+│   │     Shared Elasticsearch Index           │                 │
+│   │     • Millions of news Q&A pairs         │                 │
+│   │     • Continuously updated               │                 │
+│   │     • Free to query for everyone         │                 │
+│   └──────────────────────────────────────────┘                 │
+│                         ▲                                      │
+│         ┌───────────────┼───────────────┐                      │
+│         ▼               ▼               ▼                      │
+│      Your AI        Community       Researchers                │
+│      Agent          Projects        & Developers               │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 💸 Why? Web Search APIs Are Expensive
 
 | Service | Free Tier | Pricing |
 |---------|-----------|---------|
-| **Exa** | $10 credits (one-time) | $5 per 1K requests (1-25 results)<br>$25 per 1K requests (26-100 results) |
-| **Perplexity** | $5/month (Pro subscribers) | $0.20-$5 per 1M tokens (varies by model) |
-| **Gemini Grounding** | 500-1,500 requests/day | $35 per 1K grounded prompts |
-| **Brave Search** | 2,000 queries/month | $3 per 1K queries |
-| **Tavily** | 1,000 credits/month | $0.008 per credit (1-2 credits per search) |
-| **Grok (xAI)** | Limited free access | $5 per 1K web/X search calls |
+| **Exa** | $10 credits (one-time) | $5-25 per 1K requests |
+| **Perplexity** | $5/month (Pro only) | $0.20-$5 per 1M tokens |
+| **Gemini Grounding** | 500-1,500/day | $35 per 1K prompts |
+| **Brave Search** | 2,000/month | $3 per 1K queries |
+| **Tavily** | 1,000 credits/month | $0.008 per credit |
 
-> **Note**: Costs compound quickly for agentic workflows making hundreds of searches daily.
+For AI agents making hundreds of searches daily, costs add up fast.
+
+**OpenContext approach**: Instead of everyone paying individually, build a shared index that everyone queries for free.
 
 ---
 
-## 💡 OpenContext Approach
-
-### RSS Search + LLM Q&A Synthesis
-
-Instead of paying per search, OpenContext:
-
-1. **Fetches news via free RSS feeds** — Google News and other public sources (no API key)
-2. **Synthesizes Q&A pairs with LLM** — Transforms headlines into structured answers
-3. **Indexes everything in Elasticsearch** — Fast retrieval for future queries, scales to millions of entries
-
-### How It Works
+## 🔧 How It Works
 
 ```
-User Query → Check Elasticsearch Index
-                      ↓
-              ┌───────┴───────┐
-           Found?          Not Found?
-              ↓                ↓
-        Return indexed    Fetch from RSS
-          Q&A pairs            ↓
-                         LLM synthesizes Q&A
-                               ↓
-                         Index in Elasticsearch
-                               ↓
-                         Return to user
+User Query → Elasticsearch Index
+                    ↓
+            ┌───────┴───────┐
+         Found?          Not Found?
+            ↓                ↓
+      Return from       Fetch via RSS
+        index           (Google News)
+                             ↓
+                        LLM synthesizes
+                          Q&A pairs
+                             ↓
+                        Add to index
+                             ↓
+                        Return to user
 ```
 
-**Key insight**: Elasticsearch excels at querying indexed news data and can scale to millions of entries. Once a topic is indexed, subsequent queries are instant.
+**Key components:**
+1. **RSS Feeds** — Free news data from Google News and other public sources
+2. **LLM Synthesis** — Transforms headlines into structured Q&A pairs
+3. **Elasticsearch** — Indexes everything for fast retrieval, scales to millions of entries
 
 ---
 
 ## ⚠️ Limitations
 
-**This is a news-specific tool, not a general web search replacement.**
+**This is news-specific, not a general web search replacement.**
 
-| ✅ What Works | ❌ What Doesn't |
-|---------------|-----------------|
-| Current news & events | General knowledge queries |
+| ✅ Works | ❌ Doesn't Work |
+|----------|-----------------|
+| Current news & events | General knowledge |
 | Trending topics | Historical data |
-| Breaking news Q&A | Non-news web content |
-| Topic monitoring | Product searches, how-tos |
+| Breaking news | Product searches |
+| Topic monitoring | Documentation lookup |
 
-### Important Notes
-
-- **Rate Limits**: Google News RSS may rate-limit heavy usage. Elasticsearch indexing helps reduce requests, but this isn't truly "unlimited."
-- **Scope**: For searches beyond news (documentation, products, forums), you'll still need a paid API.
-- **Headlines Only**: RSS provides headlines and metadata, not full article content.
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    NEWS SEARCH FOR AI AGENTS                    │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   User Query (news-related)                                     │
-│       │                                                         │
-│       ▼                                                         │
-│   ┌─────────────────────┐                                       │
-│   │   Elasticsearch     │ ◄── Query indexed Q&A pairs           │
-│   │   (News Index)      │     Fast retrieval, scales to millions│
-│   └─────────┬───────────┘                                       │
-│             │                                                   │
-│       ┌─────┴─────┐                                             │
-│       │           │                                             │
-│    Found?      Not Found?                                       │
-│       │           │                                             │
-│       ▼           ▼                                             │
-│   Return      ┌───────────────────┐                             │
-│   Indexed     │   RSS Feed(s)     │ ◄── Free news fetching      │
-│   Results     │ (Google News etc) │                             │
-│               └─────────┬─────────┘                             │
-│                         │                                       │
-│                         ▼                                       │
-│               ┌───────────────────┐                             │
-│               │   LLM Synthesis   │ ◄── Generate Q&A pairs      │
-│               └─────────┬─────────┘                             │
-│                         │                                       │
-│                         ▼                                       │
-│               ┌───────────────────┐                             │
-│               │  Index to ES      │ ◄── Store for future queries│
-│               └───────────────────┘                             │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+**Also note:**
+- Google News RSS may rate-limit heavy usage
+- RSS provides headlines, not full article content
+- This is an MVP — public hosted index not yet available
 
 ---
 
-## ✨ Features
+## 📊 Current Status
 
-| Feature | Description |
-|---------|-------------|
-| **📰 RSS News Fetching** | Google News RSS (default), extensible to any RSS source |
-| **📦 Elasticsearch Index** | Fast querying of indexed news, scales to millions of entries |
-| **🤖 LLM Q&A Synthesis** | Transforms headlines into structured Q&A pairs |
-| **🔄 Smart Caching** | Index first, RSS + LLM only when needed |
-
-### Extensible RSS Sources
-
-The architecture supports **any RSS feed**, not just Google News:
-
-```python
-# Current: Google News RSS
-"https://news.google.com/rss/search?q={query}"
-
-# Easy to add:
-# - Reuters, BBC, AP News
-# - TechCrunch, Hacker News
-# - Industry-specific feeds
-# - Regional news sources
-```
-
-Diversifying sources helps avoid rate limits and broadens coverage.
+| Component | Status |
+|-----------|--------|
+| Core API | ✅ Built |
+| Local Elasticsearch | ✅ Works (Docker) |
+| Public hosted index | 🔜 Needs infrastructure |
+| Quality news data | 🔜 Needs contributions |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Try It Locally
 
 ### 1. Setup
 
@@ -169,7 +136,7 @@ Diversifying sources helps avoid rate limits and broadens coverage.
 git clone https://github.com/yourusername/OpenContext.git
 cd OpenContext
 cp env.example .env
-# Edit .env → add OPENROUTER_API_KEY
+# Add OPENROUTER_API_KEY to .env
 ```
 
 ### 2. Start Elasticsearch
@@ -178,21 +145,12 @@ cp env.example .env
 docker-compose up -d
 ```
 
-### 3. Install Dependencies
+### 3. Install & Run
 
 ```bash
-uv sync          # recommended
-# or: pip install -e .
-```
-
-### 4. Run
-
-```bash
-# Terminal 1: Backend
-uvicorn main:app --reload
-
-# Terminal 2: Chat UI
-streamlit run app.py
+uv sync                      # install dependencies
+uvicorn main:app --reload    # start API (terminal 1)
+streamlit run app.py         # start UI (terminal 2)
 ```
 
 **Access:**
@@ -201,76 +159,84 @@ streamlit run app.py
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Reference
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/search` | Search indexed Q&As, fetches from RSS + synthesizes if not found |
-| `POST` | `/generate` | Generate Q&As from news topic |
-| `POST` | `/index` | Manually index a Q&A pair |
-| `POST` | `/index/bulk` | Bulk index multiple Q&As |
-| `GET` | `/stats` | Elasticsearch index stats |
-| `GET` | `/health` | API health check |
-| `DELETE` | `/index` | Clear all Q&As |
+| `POST` | `/search` | Search news Q&As (fetches from RSS if not indexed) |
+| `POST` | `/generate` | Generate Q&As for a topic |
+| `POST` | `/index` | Add a Q&A pair |
+| `POST` | `/index/bulk` | Bulk add Q&A pairs |
+| `GET` | `/stats` | Index statistics |
+| `GET` | `/health` | Health check |
+| `DELETE` | `/index` | Clear index |
 
 ### Example
 
 ```bash
 curl -X POST http://localhost:8000/search \
   -H "Content-Type: application/json" \
-  -d '{"query": "latest AI news", "top_k": 10}'
+  -d '{"query": "AI regulations"}'
 ```
 
----
-
-## 🎯 Use Cases
-
-### ✅ Good Fit
-
-- **News Monitoring Agents** — Track topics, generate summaries
-- **News Chatbots** — Answer questions about current events
-- **Research Pipelines** — Build news-based knowledge graphs
-- **Alert Systems** — Monitor for specific news triggers
-
-### ❌ Not Suitable
-
-- General web search (use Exa, Perplexity, Brave, etc.)
-- Documentation/API reference lookup
-- Product or service searches
-- Historical research beyond news
 
 ---
 
-## 🧩 LangChain Integration
+## 🤝 Contributing
 
-```python
-from news_service import create_news_tool
+**This MVP needs help to become a real public API.**
 
-# Create tool for news-related queries
-news_tool = create_news_tool()
-tools = [news_tool]
-```
+### What We Need
+
+| Area | Help Wanted |
+|------|-------------|
+| **Infrastructure** | Hosted Elasticsearch (Elastic Cloud, OpenSearch, etc.) |
+| **RSS Sources** | Add Reuters, BBC, AP, regional feeds |
+| **Code** | Rate limiting, vector search, article extraction |
+| **Testing** | Try it out, report issues, suggest improvements |
+
+### Get Involved
+
+- ⭐ Star the repo
+- 🐛 Open an [Issue](https://github.com/yourusername/OpenContext/issues)
+- 💬 Start a [Discussion](https://github.com/yourusername/OpenContext/discussions)
+- 🔧 Submit a PR
+
+> This is a passion project exploring whether free RSS + shared indexing can reduce search costs for AI agents. All help welcome!
 
 ---
 
-## 🛠 Tech Stack
+## 🔮 Roadmap
+
+| Phase | Status | Goal |
+|-------|--------|------|
+| MVP | ✅ Current | Local ES, Google News, basic Q&A |
+| v0.2 | 🔜 Next | Multiple RSS sources, rate limiting |
+| v0.3 | 💭 Future | Vector search, article extraction |
+| v1.0 | 🎯 Goal | **Public hosted API** |
+
+---
+
+## 🛠 Technical Details
+
+<details>
+<summary>Tech Stack</summary>
 
 | Component | Technology |
 |-----------|------------|
-| News Source | RSS Feeds (Google News, etc.) |
-| Index & Search | Elasticsearch |
+| News Source | RSS Feeds |
+| Index | Elasticsearch |
 | Backend | FastAPI |
 | Frontend | Streamlit |
 | LLM | OpenRouter |
 
----
+</details>
 
-## 🔧 Configuration
+<details>
+<summary>Configuration</summary>
 
 ```bash
 # .env file
-
-# Required
 OPENROUTER_API_KEY=your_key_here
 
 # Optional
@@ -279,73 +245,41 @@ ELASTICSEARCH_INDEX=news-qa
 LLM_MODEL=google/gemini-2.0-flash-001
 ```
 
----
+</details>
 
-## 📋 Requirements
+<details>
+<summary>Requirements</summary>
 
 - Python 3.10+
-- Docker (for Elasticsearch)
+- Docker
 - OpenRouter API key
 
----
+</details>
 
-## 🤝 Contributing & Collaboration
+<details>
+<summary>RSS Sources (Extensible)</summary>
 
-**This is an MVP and we're looking for collaborators!**
+```python
+# Current
+"https://news.google.com/rss/search?q={query}"
 
-OpenContext is an early-stage experiment. To grow beyond MVP, we need help with:
+# Easy to add
+# - Reuters, BBC, AP News
+# - TechCrunch, Hacker News
+# - Industry-specific feeds
+```
 
-### 🔧 Technical Contributions
-
-- [ ] Add more RSS feed sources (Reuters, BBC, AP, etc.)
-- [ ] Implement rate limit handling with source rotation
-- [ ] Add semantic/vector search alongside keyword search
-- [ ] Full article content extraction
-- [ ] Better Q&A synthesis prompts
-
-### 🏗️ Infrastructure
-
-This project needs infrastructure support to scale:
-
-- **Elasticsearch hosting** — Currently runs locally via Docker; production deployment needs hosted ES (Elastic Cloud, OpenSearch, etc.)
-- **CI/CD pipeline** — Automated testing and deployment
-- **Demo instance** — Hosted version for people to try
-
-### 💡 Ideas & Feedback
-
-- Open an [Issue](https://github.com/yourusername/OpenContext/issues) with suggestions
-- Share use cases we haven't considered
-- Report bugs or limitations you encounter
-
-### 📬 Get in Touch
-
-Interested in collaborating or sponsoring infrastructure?
-
-- Open a GitHub Issue or Discussion
-- Reach out via [Twitter/X](https://twitter.com/yourhandle) or [Email](mailto:your@email.com)
-
-> **Note**: This is a passion project exploring whether free RSS feeds can meaningfully reduce search API costs for news-focused AI agents. All contributions welcome — code, ideas, or just feedback!
-
----
-
-## 🔮 Roadmap
-
-| Phase | Status | Description |
-|-------|--------|-------------|
-| MVP | ✅ Current | Local Elasticsearch, Google News RSS, basic Q&A |
-| v0.2 | 🔜 Planned | Multiple RSS sources, rate limit handling |
-| v0.3 | 💭 Future | Vector search, article extraction |
-| v1.0 | 🎯 Goal | Production-ready with hosted demo |
+</details>
 
 ---
 
 ## 📝 License
 
-MIT License — use freely, contribute back if you can!
+MIT — Use freely, contribute back if you can!
 
 ---
 
 <p align="center">
-  <em>An experiment to reduce web search costs for news-focused AI agents.</em><br/>
-  <strong>📰 RSS Feeds • 📦 Elasticsearch Index • 🤖 LLM Q&A Synthesis</strong>
+  <strong>📰 Free RSS → 📦 Shared Index → 🤖 Free News Search for AI</strong><br/>
+  <em>An experiment in making web search accessible.</em>
 </p>
