@@ -1,0 +1,60 @@
+# Secure version with authentication enabled
+# Usage: docker-compose -f docker-compose.secure.yml up -d
+#
+# After starting:
+# 1. Get the elastic password: docker exec -it opencontext-elasticsearch /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
+# 2. Get Kibana enrollment token: docker exec -it opencontext-elasticsearch /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
+# 3. Open Kibana at http://localhost:5601 and enter the enrollment token
+# 4. Login with user "elastic" and the password from step 1
+
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.3
+    container_name: opencontext-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - xpack.security.enabled=true
+      - xpack.security.enrollment.enabled=true
+      - cluster.name=opencontext-cluster
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -k https://localhost:9200/_cluster/health -u elastic:${ELASTIC_PASSWORD:-changeme} | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - elastic
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.2.3
+    container_name: opencontext-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD:-changeme}
+      - ELASTICSEARCH_SSL_VERIFICATIONMODE=none
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - elastic
+
+volumes:
+  elasticsearch_data:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge
+

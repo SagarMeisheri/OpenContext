@@ -56,7 +56,7 @@ streamlit = [
 
 [tool.uv]
 # Use system Python (conda) instead of creating .venv
-managed = false
+# managed = false
 
 dev-dependencies = [
     "pytest",
