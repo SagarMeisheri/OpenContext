@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "models", "elasticsearch_client", "news_service", "llm_service", "api_client", "app"]
+
+[project]
+name = "opencontext"
+version = "1.0.0"
+description = "News Q&A Search and Generation API using FastAPI and Elasticsearch"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # FastAPI and server
+    "fastapi",
+    "uvicorn[standard]",
+    "python-multipart",
+    
+    # Elasticsearch
+    "elasticsearch[async]",
+    
+    # LangChain and LLM
+    "langchain",
+    "langchain-openai",
+    "langchain-core",
+    
+    # News fetching
+    "feedparser",
+    "requests",
+    
+    # Environment and utilities
+    "python-dotenv",
+    "pydantic",
+    "numpy",
+    
+    # HTTP client for API calls
+    "httpx",
+    
+    # Streamlit chat UI
+    "streamlit",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+]
+semantic = [
+    "sentence-transformers",
+]
+streamlit = [
+    "streamlit",
+]
+
+[tool.uv]
+# Use system Python (conda) instead of creating .venv
+managed = false
+
+dev-dependencies = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",
+]
