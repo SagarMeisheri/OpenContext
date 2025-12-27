@@ -56,14 +56,14 @@ with st.sidebar:
         else:
             st.info(f"Health: {health}")
 
-        # Clear index button
-        if st.button("Clear Index", use_container_width=True, type="secondary"):
-            try:
-                api_client.clear_index()
-                st.success("Index cleared!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error: {e}")
+        # # Clear index button
+        # if st.button("Clear Index", use_container_width=True, type="secondary"):
+        #     try:
+        #         api_client.clear_index()
+        #         st.success("Index cleared!")
+        #         st.rerun()
+        #     except Exception as e:
+        #         st.error(f"Error: {e}")
 
     st.divider()
     st.caption("Q&A pairs are stored in Elasticsearch and searched using BM25 ranking.")
