@@ -2,7 +2,6 @@
 Google News RSS fetching service.
 
 Fetches news headlines from Google News RSS feed for a given topic.
-Extracted from langchain_test.py for use in the FastAPI application.
 """
 
 from dataclasses import dataclass
@@ -144,32 +143,3 @@ def format_news_for_llm(result: NewsResult) -> str:
         )
 
     return "\n\n".join(lines)
-
-
-# LangChain tool wrapper for use with agents
-def create_news_tool():
-    """
-    Create a LangChain tool for fetching Google News.
-
-    Returns:
-        A LangChain tool function
-    """
-    from langchain.tools import tool
-
-    @tool
-    def google_news(query: str, days: int = 7) -> str:
-        """
-        Fetch the latest news headlines from Google News for a given search query.
-
-        Args:
-            query: The search topic or keywords (e.g., 'artificial intelligence', 'climate change')
-            days: Number of days to look back for news (default: 7)
-
-        Returns:
-            A formatted string with news headlines, sources, and publication dates.
-        """
-        result = fetch_google_news(query, days=days, max_results=10)
-        return format_news_for_llm(result)
-
-    return google_news
-

@@ -2,12 +2,12 @@
 
 > **An experiment to make news-based web search free for AI agents.**
 
-OpenContext provides a **free web search API** for the news domain, combining RSS feeds (Google News + others) with **Elasticsearch caching** to deliver news intelligence without paying for expensive search APIs.
+OpenContext is an attempt to build a **free news search API** by combining RSS feeds (Google News + others) with **Elasticsearch indexing** and **LLM-powered Q&A synthesis** — avoiding expensive search API subscriptions.
 
 <p align="center">
   <img src="https://img.shields.io/badge/News%20Search-RSS%20Based-4285F4?style=for-the-badge" alt="RSS Based"/>
-  <img src="https://img.shields.io/badge/Elasticsearch-BM25%20Cache-005571?style=for-the-badge&logo=elasticsearch" alt="Elasticsearch"/>
-  <img src="https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge" alt="Experimental"/>
+  <img src="https://img.shields.io/badge/Elasticsearch-Indexed-005571?style=for-the-badge&logo=elasticsearch" alt="Elasticsearch"/>
+  <img src="https://img.shields.io/badge/Status-MVP-orange?style=for-the-badge" alt="MVP"/>
 </p>
 
 ---
@@ -20,7 +20,7 @@ OpenContext provides a **free web search API** for the news domain, combining RS
 - [Architecture](#%EF%B8%8F-architecture)
 - [Quick Start](#-quick-start)
 - [API Reference](#-api-endpoints)
-- [Use Cases](#-use-cases)
+- [Contributing](#-contributing--collaboration)
 
 ---
 
@@ -39,34 +39,38 @@ Building AI agents with web search capabilities gets expensive fast.
 | **Tavily** | 1,000 credits/month | $0.008 per credit (1-2 credits per search) |
 | **Grok (xAI)** | Limited free access | $5 per 1K web/X search calls |
 
-> **Note**: All services charge separately for additional features like content extraction, tokens, etc. Costs compound quickly for agentic workflows making hundreds of searches daily.
+> **Note**: Costs compound quickly for agentic workflows making hundreds of searches daily.
 
 ---
 
 ## 💡 OpenContext Approach
 
-### The Idea: RSS Feeds + Smart Caching
+### RSS Search + LLM Q&A Synthesis
 
 Instead of paying per search, OpenContext:
 
-1. **Uses free RSS feeds** — Google News RSS and other public news sources (no API key required)
-2. **Caches aggressively** — Elasticsearch stores generated Q&A pairs for instant reuse
-3. **Calls LLM only on cache miss** — Minimizes paid API calls to ~20% of queries
+1. **Fetches news via free RSS feeds** — Google News and other public sources (no API key)
+2. **Synthesizes Q&A pairs with LLM** — Transforms headlines into structured answers
+3. **Indexes everything in Elasticsearch** — Fast retrieval for future queries, scales to millions of entries
 
 ### How It Works
 
 ```
-User Query → Elasticsearch Cache (10-30ms)
-                    ↓
-            ┌───────┴───────┐
-         Found?          Not Found?
-            ↓                ↓
-      Return cached     RSS Feed (free)
-        results              ↓
-                        LLM generates Q&A
-                             ↓
-                        Cache in ES
+User Query → Check Elasticsearch Index
+                      ↓
+              ┌───────┴───────┐
+           Found?          Not Found?
+              ↓                ↓
+        Return indexed    Fetch from RSS
+          Q&A pairs            ↓
+                         LLM synthesizes Q&A
+                               ↓
+                         Index in Elasticsearch
+                               ↓
+                         Return to user
 ```
+
+**Key insight**: Elasticsearch excels at querying indexed news data and can scale to millions of entries. Once a topic is indexed, subsequent queries are instant.
 
 ---
 
@@ -83,7 +87,7 @@ User Query → Elasticsearch Cache (10-30ms)
 
 ### Important Notes
 
-- **Rate Limits**: Google News RSS may rate-limit heavy usage. The Elasticsearch cache helps reduce requests, but this isn't truly "unlimited."
+- **Rate Limits**: Google News RSS may rate-limit heavy usage. Elasticsearch indexing helps reduce requests, but this isn't truly "unlimited."
 - **Scope**: For searches beyond news (documentation, products, forums), you'll still need a paid API.
 - **Headlines Only**: RSS provides headlines and metadata, not full article content.
 
@@ -100,8 +104,8 @@ User Query → Elasticsearch Cache (10-30ms)
 │       │                                                         │
 │       ▼                                                         │
 │   ┌─────────────────────┐                                       │
-│   │   Elasticsearch     │ ◄── BM25 Search (10-30ms)             │
-│   │   (Q&A Cache)       │     Check for existing answers        │
+│   │   Elasticsearch     │ ◄── Query indexed Q&A pairs           │
+│   │   (News Index)      │     Fast retrieval, scales to millions│
 │   └─────────┬───────────┘                                       │
 │             │                                                   │
 │       ┌─────┴─────┐                                             │
@@ -110,18 +114,18 @@ User Query → Elasticsearch Cache (10-30ms)
 │       │           │                                             │
 │       ▼           ▼                                             │
 │   Return      ┌───────────────────┐                             │
-│   Cached      │   RSS Feed(s)     │ ◄── Free, but rate-limited  │
+│   Indexed     │   RSS Feed(s)     │ ◄── Free news fetching      │
 │   Results     │ (Google News etc) │                             │
 │               └─────────┬─────────┘                             │
 │                         │                                       │
 │                         ▼                                       │
 │               ┌───────────────────┐                             │
-│               │   LLM Processing  │ ◄── Generate Q&A pairs      │
+│               │   LLM Synthesis   │ ◄── Generate Q&A pairs      │
 │               └─────────┬─────────┘                             │
 │                         │                                       │
 │                         ▼                                       │
 │               ┌───────────────────┐                             │
-│               │  Index to ES      │ ◄── Cache for future        │
+│               │  Index to ES      │ ◄── Store for future queries│
 │               └───────────────────┘                             │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -134,9 +138,9 @@ User Query → Elasticsearch Cache (10-30ms)
 | Feature | Description |
 |---------|-------------|
 | **📰 RSS News Fetching** | Google News RSS (default), extensible to any RSS source |
-| **📦 Elasticsearch Cache** | BM25 ranking, instant retrieval (10-30ms), auto-indexing |
-| **🤖 LLM Q&A Generation** | Transforms headlines into structured Q&A pairs |
-| **🔄 Hybrid Strategy** | Search cache first, fallback to RSS + LLM on miss |
+| **📦 Elasticsearch Index** | Fast querying of indexed news, scales to millions of entries |
+| **🤖 LLM Q&A Synthesis** | Transforms headlines into structured Q&A pairs |
+| **🔄 Smart Caching** | Index first, RSS + LLM only when needed |
 
 ### Extensible RSS Sources
 
@@ -201,7 +205,7 @@ streamlit run app.py
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/search` | Search Q&As with LLM fallback |
+| `POST` | `/search` | Search indexed Q&As, fetches from RSS + synthesizes if not found |
 | `POST` | `/generate` | Generate Q&As from news topic |
 | `POST` | `/index` | Manually index a Q&A pair |
 | `POST` | `/index/bulk` | Bulk index multiple Q&As |
@@ -214,20 +218,8 @@ streamlit run app.py
 ```bash
 curl -X POST http://localhost:8000/search \
   -H "Content-Type: application/json" \
-  -d '{"query": "latest AI news", "top_k": 10, "fallback_to_llm": true}'
+  -d '{"query": "latest AI news", "top_k": 10}'
 ```
-
----
-
-## 📊 Cost Comparison
-
-| Scenario | Paid Search API | OpenContext |
-|----------|-----------------|-------------|
-| First query on topic | API call cost | RSS (free) + LLM call |
-| Repeated queries | API call cost each time | **Cached — free** |
-| Non-news queries | Works | ❌ Not supported |
-
-**Best for**: News-heavy use cases with repeating queries (topic monitoring, news chatbots).
 
 ---
 
@@ -266,7 +258,7 @@ tools = [news_tool]
 | Component | Technology |
 |-----------|------------|
 | News Source | RSS Feeds (Google News, etc.) |
-| Cache | Elasticsearch (BM25) |
+| Index & Search | Elasticsearch |
 | Backend | FastAPI |
 | Frontend | Streamlit |
 | LLM | OpenRouter |
@@ -297,22 +289,63 @@ LLM_MODEL=google/gemini-2.0-flash-001
 
 ---
 
-## 🔮 Future Ideas
+## 🤝 Contributing & Collaboration
 
-- [ ] Add more RSS sources (Reuters, BBC, AP)
-- [ ] Rate limit handling with source rotation
-- [ ] Semantic search with embeddings
-- [ ] Full article extraction
+**This is an MVP and we're looking for collaborators!**
+
+OpenContext is an early-stage experiment. To grow beyond MVP, we need help with:
+
+### 🔧 Technical Contributions
+
+- [ ] Add more RSS feed sources (Reuters, BBC, AP, etc.)
+- [ ] Implement rate limit handling with source rotation
+- [ ] Add semantic/vector search alongside keyword search
+- [ ] Full article content extraction
+- [ ] Better Q&A synthesis prompts
+
+### 🏗️ Infrastructure
+
+This project needs infrastructure support to scale:
+
+- **Elasticsearch hosting** — Currently runs locally via Docker; production deployment needs hosted ES (Elastic Cloud, OpenSearch, etc.)
+- **CI/CD pipeline** — Automated testing and deployment
+- **Demo instance** — Hosted version for people to try
+
+### 💡 Ideas & Feedback
+
+- Open an [Issue](https://github.com/yourusername/OpenContext/issues) with suggestions
+- Share use cases we haven't considered
+- Report bugs or limitations you encounter
+
+### 📬 Get in Touch
+
+Interested in collaborating or sponsoring infrastructure?
+
+- Open a GitHub Issue or Discussion
+- Reach out via [Twitter/X](https://twitter.com/yourhandle) or [Email](mailto:your@email.com)
+
+> **Note**: This is a passion project exploring whether free RSS feeds can meaningfully reduce search API costs for news-focused AI agents. All contributions welcome — code, ideas, or just feedback!
+
+---
+
+## 🔮 Roadmap
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| MVP | ✅ Current | Local Elasticsearch, Google News RSS, basic Q&A |
+| v0.2 | 🔜 Planned | Multiple RSS sources, rate limit handling |
+| v0.3 | 💭 Future | Vector search, article extraction |
+| v1.0 | 🎯 Goal | Production-ready with hosted demo |
 
 ---
 
 ## 📝 License
 
-MIT License
+MIT License — use freely, contribute back if you can!
 
 ---
 
 <p align="center">
   <em>An experiment to reduce web search costs for news-focused AI agents.</em><br/>
-  <strong>📰 RSS Feeds • 📦 Elasticsearch Cache • 🤖 LLM Q&A</strong>
+  <strong>📰 RSS Feeds • 📦 Elasticsearch Index • 🤖 LLM Q&A Synthesis</strong>
 </p>

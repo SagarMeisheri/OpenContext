@@ -11,10 +11,9 @@ from dataclasses import dataclass
 from typing import Optional
 
 from dotenv import load_dotenv
-from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 
-from news_service import create_news_tool, fetch_google_news, format_news_for_llm
+from news_service import fetch_google_news, format_news_for_llm
 
 load_dotenv()
 
@@ -219,121 +218,3 @@ async def generate_qa_from_news(
             news_count=0,
             error=f"Generation error: {str(e)}"
         )
-
-
-class QAGeneratorAgent:
-    """
-    Agent-based Q&A generator using LangChain ReAct pattern.
-
-    Uses tools to fetch news and generate Q&A pairs with
-    multi-step reasoning.
-    """
-
-    def __init__(self):
-        """Initialize the agent with tools and LLM."""
-        self.llm = get_llm(temperature=0)
-        self.news_tool = create_news_tool()
-        self.tools = [self.news_tool]
-        
-        # Create the agent using LangChain's create_agent
-        self.agent = create_agent(
-            model=self.llm,
-            tools=self.tools
-        )
-
-    async def generate(
-        self,
-        topic: str,
-        num_pairs: int = 5
-    ) -> GenerationResult:
-        """
-        Generate Q&A pairs using the agent.
-
-        Args:
-            topic: News topic to research
-            num_pairs: Number of Q&A pairs to generate
-
-        Returns:
-            GenerationResult with Q&A pairs
-        """
-        try:
-            # Create the prompt for the agent
-            prompt = f"""You are an expert news analyst. Your task is to:
-1. First, use the google_news tool to fetch recent news about "{topic}"
-2. Then analyze the news and create {num_pairs} high-quality question-answer pairs
-
-**Output Format (STRICTLY follow this format):**
-Q1: [Question text here]
-A1: [Detailed answer here]
-
-Q2: [Question text here]
-A2: [Detailed answer here]
-
-... and so on.
-
-Start by fetching news about "{topic}" and then generate the Q&A pairs."""
-
-            # Invoke the agent with the message
-            result = await self.agent.ainvoke({
-                "messages": [{"role": "user", "content": prompt}]
-            })
-
-            # Extract the final response content
-            messages = result.get("messages", [])
-            if not messages:
-                return GenerationResult(
-                    success=False,
-                    qa_pairs=[],
-                    topic=topic,
-                    news_count=0,
-                    error="No response from agent"
-                )
-
-            # Get the last AI message content
-            final_content = ""
-            for msg in reversed(messages):
-                if hasattr(msg, 'content') and msg.content and not hasattr(msg, 'tool_calls'):
-                    final_content = msg.content
-                    break
-
-            if not final_content:
-                return GenerationResult(
-                    success=False,
-                    qa_pairs=[],
-                    topic=topic,
-                    news_count=0,
-                    error="No content in agent response"
-                )
-
-            # Parse the Q&A pairs from the response
-            qa_pairs = parse_qa_pairs(final_content, topic)
-
-            if not qa_pairs:
-                return GenerationResult(
-                    success=False,
-                    qa_pairs=[],
-                    topic=topic,
-                    news_count=0,
-                    error="Failed to parse Q&A pairs from agent response."
-                )
-
-            return GenerationResult(
-                success=True,
-                qa_pairs=qa_pairs,
-                topic=topic,
-                news_count=len(qa_pairs)  # Approximate based on generated pairs
-            )
-
-        except Exception as e:
-            return GenerationResult(
-                success=False,
-                qa_pairs=[],
-                topic=topic,
-                news_count=0,
-                error=f"Agent error: {str(e)}"
-            )
-
-
-# Singleton instance
-qa_generator = QAGeneratorAgent()
-
