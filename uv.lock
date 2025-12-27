@@ -1611,11 +1611,12 @@ wheels = [
 [[package]]
 name = "opencontext"
 version = "1.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "elasticsearch", extra = ["async"] },
     { name = "fastapi" },
     { name = "feedparser" },
+    { name = "httpx" },
     { name = "langchain" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
@@ -1625,6 +1626,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "python-multipart" },
     { name = "requests" },
+    { name = "streamlit" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -1653,6 +1655,7 @@ requires-dist = [
     { name = "elasticsearch", extras = ["async"] },
     { name = "fastapi" },
     { name = "feedparser" },
+    { name = "httpx" },
     { name = "httpx", marker = "extra == 'dev'" },
     { name = "langchain" },
     { name = "langchain-core" },
@@ -1665,6 +1668,7 @@ requires-dist = [
     { name = "python-multipart" },
     { name = "requests" },
     { name = "sentence-transformers", marker = "extra == 'semantic'" },
+    { name = "streamlit" },
     { name = "streamlit", marker = "extra == 'streamlit'" },
     { name = "uvicorn", extras = ["standard"] },
 ]
