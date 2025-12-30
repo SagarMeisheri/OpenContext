@@ -39,6 +39,9 @@ dependencies = [
     
     # Streamlit chat UI
     "streamlit",
+    
+    # Web scraping
+    "beautifulsoup4",
 ]
 
 [project.optional-dependencies]
