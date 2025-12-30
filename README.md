@@ -1,9 +1,9 @@
 # 🌐 OpenContext — Free News Search API for AI Agents
 
-> **Building a public, free news search API powered by RSS feeds and Elasticsearch.**
+> **Building a public, free news search API powered by official sources and Elasticsearch.**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/News%20Search-RSS%20Based-4285F4?style=for-the-badge" alt="RSS Based"/>
+  <img src="https://img.shields.io/badge/News%20Search-Official%20Sources-4285F4?style=for-the-badge" alt="Official Sources"/>
   <img src="https://img.shields.io/badge/Elasticsearch-Indexed-005571?style=for-the-badge&logo=elasticsearch" alt="Elasticsearch"/>
   <img src="https://img.shields.io/badge/Status-MVP-orange?style=for-the-badge" alt="MVP"/>
 </p>
@@ -16,6 +16,7 @@
 - [Why? (The Problem)](#-why-web-search-apis-are-expensive)
 - [How It Works](#-how-it-works)
 - [Limitations](#%EF%B8%8F-limitations)
+- [Copyright & Legal Considerations](#%EF%B8%8F-copyright--legal-considerations)
 - [Current Status](#-current-status)
 - [Try It Locally](#-try-it-locally)
 - [API Reference](#-api-reference)
@@ -32,8 +33,10 @@ OpenContext is an attempt to create a **free, public news search API** that AI a
 **The idea:**
 - Build a shared Elasticsearch index with news Q&A data
 - Anyone can query it for free
-- Data comes from free RSS feeds (Google News, etc.) + Open Source LLM synthesis
+- Data comes from **copyright-safe official sources** (government releases, company press releases) + Open Source LLM synthesis
 - The more the community uses it, the better the index becomes
+
+> ⚠️ **Note**: Current MVP uses Google News for testing only. Production requires official sources to avoid copyright issues.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
@@ -81,8 +84,8 @@ User Query → Elasticsearch Index
             ┌───────┴───────┐
          Found?          Not Found?
             ↓                ↓
-      Return from       Fetch via RSS
-        index           (Google News)
+      Return from       Fetch from Official Sources
+        index           (Gov/Company Press Releases)
                              ↓
                         LLM synthesizes
                           Q&A pairs
@@ -93,7 +96,7 @@ User Query → Elasticsearch Index
 ```
 
 **Key components:**
-1. **RSS Feeds** — Free news data from Google News and other public sources
+1. **Official Sources** — Copyright-safe data from global government releases and company press releases *(MVP uses Google News for testing only)*
 2. **LLM Synthesis** — Transforms headlines into structured Q&A pairs
 3. **Elasticsearch** — Indexes everything for fast retrieval, scales to millions of entries
 
@@ -111,9 +114,50 @@ User Query → Elasticsearch Index
 | Topic monitoring | Documentation lookup |
 
 **Also note:**
-- Google News RSS may rate-limit heavy usage
-- RSS provides headlines, not full article content
+- **Copyright concerns**: Google News is MVP-only. Production must use official sources (government/company releases)
+- Official sources provide headlines/summaries, not full article content
 - This is an MVP — public hosted index not yet available
+
+---
+
+## ⚖️ Copyright & Legal Considerations
+
+**Important: OpenContext must use copyright-safe sources for legal redistribution.**
+
+### Why Official Sources Only?
+
+**ALL news RSS sources are copyrighted** — including Reuters, BBC, AP, Google News, and any news organization. Even when content is available via RSS feeds, it remains copyrighted and cannot be legally indexed/redistributed in an open-source project without permission.
+
+### Copyright-Safe Sources
+
+✅ **Government Press Releases (Global)**
+- **India**: PIB (pib.gov.in), ministries, RBI statements
+- **United States**: SEC filings, White House, NASA, CDC/FDA
+- **United Kingdom**: GOV.UK press releases
+- **European Union**: europa.eu official announcements
+- **Canada**: canada.ca news releases
+- **Australia**: minister.gov.au releases
+- **International**: UN, WHO, IMF, World Bank statements
+
+✅ **Company Press Releases (Worldwide)**
+- Investor relations announcements
+- Official company statements
+- Corporate RSS feeds from IR departments
+
+### Current MVP Status
+
+⚠️ **Google News is used for MVP demonstration ONLY**
+
+The current implementation uses Google News for testing purposes, but this poses copyright risks for production use. Any production deployment or public API must transition to official sources only.
+
+### Why This Matters
+
+Official sources are:
+- Explicitly designed for public redistribution
+- Copyright-safe and legally republishable
+- Authoritative and trustworthy
+- Free from legal liability
+- Available globally from governments and companies worldwide
 
 ---
 
@@ -191,7 +235,7 @@ curl -X POST http://localhost:8000/search \
 | Area | Help Wanted |
 |------|-------------|
 | **Infrastructure** | Hosted Elasticsearch (Elastic Cloud, OpenSearch, etc.) |
-| **RSS Sources** | Add Reuters, BBC, AP, regional feeds |
+| **Official Sources** | Add global government press releases, company IR feeds from any country (NOT Reuters/BBC/AP — copyrighted!) |
 | **Code** | Rate limiting, vector search, article extraction |
 | **Testing** | Try it out, report issues, suggest improvements |
 
@@ -202,7 +246,7 @@ curl -X POST http://localhost:8000/search \
 - 💬 Start a [Discussion](https://github.com/yourusername/OpenContext/discussions)
 - 🔧 Submit a PR
 
-> This is a passion project exploring whether free RSS + shared indexing can reduce search costs for AI agents. All help welcome!
+> This is a passion project exploring whether official sources + shared indexing can reduce search costs for AI agents. All help welcome!
 
 ---
 
@@ -210,10 +254,10 @@ curl -X POST http://localhost:8000/search \
 
 | Phase | Status | Goal |
 |-------|--------|------|
-| MVP | ✅ Current | Local ES, Google News, basic Q&A |
-| v0.2 | 🔜 Next | Multiple RSS sources, rate limiting |
+| MVP | ✅ Current | Local ES, **Google News (MVP only)**, basic Q&A |
+| v0.2 | 🔜 Next | **Transition to official sources** (press releases, govt feeds), rate limiting |
 | v0.3 | 💭 Future | Vector search, article extraction |
-| v1.0 | 🎯 Goal | **Public hosted API** |
+| v1.0 | 🎯 Goal | **Public hosted API** with copyright-safe sources |
 
 ---
 
@@ -224,7 +268,7 @@ curl -X POST http://localhost:8000/search \
 
 | Component | Technology |
 |-----------|------------|
-| News Source | RSS Feeds |
+| News Source | Official Sources (Gov/Company) |
 | Index | Elasticsearch |
 | Backend | FastAPI |
 | Frontend | Streamlit |
@@ -257,17 +301,30 @@ LLM_MODEL=google/gemini-2.0-flash-001
 </details>
 
 <details>
-<summary>RSS Sources (Extensible)</summary>
+<summary>News Sources (Copyright-Safe)</summary>
 
 ```python
-# Current
-"https://news.google.com/rss/search?q={query}"
+# Copyright-Safe Sources (ONLY these for production):
+# 
+# Global Government Sources:
+# - India: pib.gov.in (Press Information Bureau), RBI, ministries
+# - United States: whitehouse.gov, sec.gov, nasa.gov, CDC, FDA
+# - United Kingdom: gov.uk press releases
+# - European Union: europa.eu announcements
+# - Canada: canada.ca news releases
+# - Australia: minister.gov.au
+# - International: UN, WHO, IMF, World Bank
+#
+# Company Sources (Worldwide):
+# - Company investor relations (official IR RSS feeds)
+# - Corporate press releases
 
-# Easy to add
-# - Reuters, BBC, AP News
-# - TechCrunch, Hacker News
-# - Industry-specific feeds
+# MVP Testing Only (COPYRIGHT RISK - Do NOT use in production):
+# - Google News (currently used for MVP demonstration only)
+# - Reuters, BBC, AP, and other news organizations (all copyrighted)
 ```
+
+**Note**: Any production deployment must use official sources only to avoid copyright infringement.
 
 </details>
 
@@ -280,6 +337,6 @@ MIT — Use freely, contribute back if you can!
 ---
 
 <p align="center">
-  <strong>📰 Free RSS → 📦 Shared Index → 🤖 Free News Search for AI</strong><br/>
-  <em>An experiment in making web search accessible.</em>
+  <strong>🏛️ Official Sources → 📦 Shared Index → 🤖 Free News Search for AI</strong><br/>
+  <em>An experiment in making agentic web search accessible with copyright-safe sources.</em>
 </p>
