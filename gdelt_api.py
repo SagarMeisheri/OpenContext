@@ -291,7 +291,6 @@ async def test_multiple_queries():
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
     # Test the nvidia/groq query
-    asyncio.run(test_sample_query(query="indore water contamination"))
-    
-    # Uncomment to test multiple queries:
-    # asyncio.run(test_multiple_queries())
+
+    input_query = input("Enter a query: ")
+    asyncio.run(test_sample_query(query=input_query))
