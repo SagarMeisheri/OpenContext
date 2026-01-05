@@ -16,32 +16,27 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "python-multipart",
-    
     # Elasticsearch
     "elasticsearch[async]",
-    
     # LangChain and LLM
     "langchain",
     "langchain-openai",
     "langchain-core",
-    
     # News fetching
     "feedparser",
     "requests",
-    
     # Environment and utilities
     "python-dotenv",
     "pydantic",
     "numpy",
-    
     # HTTP client for API calls
     "httpx",
-    
     # Streamlit chat UI
     "streamlit",
-    
     # Web scraping
     "beautifulsoup4",
+    "mcp>=1.25.0",
+    "langchain-mcp-adapters>=0.2.1",
 ]
 
 [project.optional-dependencies]
