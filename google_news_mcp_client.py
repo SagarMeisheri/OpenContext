@@ -2,6 +2,7 @@ import asyncio
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
 from langchain_core.callbacks.base import BaseCallbackHandler
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from llm_service import get_llm
 from typing import Any, Dict
 
@@ -80,7 +81,7 @@ SYNTHESIS RULES:
     )
     
     # Example query - you can modify this
-    query = "with-ai-assistance-bengaluru-techie-turns-helmet-into-traffic-watchdog"
+    query = "manchester united sack theri maanger who is next"
     
     print(f"Testing query: '{query}'\n")
     print("=" * 80)
@@ -92,13 +93,80 @@ SYNTHESIS RULES:
                 "content": f"{query}"
             }]
         },
-        config={"callbacks": [ToolPrintCallback()]}
+        # config={"callbacks": [ToolPrintCallback()]}
     )
     
-    print("\n" + "=" * 80)
-    print("\nAgent Response:")
-    print("=" * 80)
-    print(response)
+    # Extract and print all messages by type
+    messages = response.get("messages", [])
+    print(f"\n📬 AGENT EXECUTION FLOW ({len(messages)} messages)")
+    print("=" * 100)
+    
+    for idx, msg in enumerate(messages, 1):
+        
+        if isinstance(msg, HumanMessage):
+            print(f"\n[{idx}] 🧑 USER QUERY")
+            print(f"    \"{msg.content}\"")
+            
+        elif isinstance(msg, AIMessage):
+            # Check if this is an intermediate AI message (with tool calls) or final response
+            if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                print(f"\n[{idx}] 🤖 AI DECISION: Call {len(msg.tool_calls)} tool(s)")
+                for i, tc in enumerate(msg.tool_calls, 1):
+                    print(f"    └─ Tool #{i}: {tc.get('name')}(query=\"{tc.get('args', {}).get('query')}\")")
+            else:
+                # Final AI response with actual content
+                print(f"\n[{idx}] 🤖 AI FINAL ANSWER")
+                print("-" * 100)
+                if msg.content:
+                    # Print full content for final answer
+                    print(msg.content)
+                else:
+                    print("(empty response)")
+                print("-" * 100)
+                
+                # Show token usage if available
+                if hasattr(msg, 'response_metadata') and 'token_usage' in msg.response_metadata:
+                    usage = msg.response_metadata['token_usage']
+                    print(f"    📊 Tokens: {usage.get('total_tokens')} total "
+                          f"({usage.get('prompt_tokens')} prompt + {usage.get('completion_tokens')} completion)")
+            
+        elif isinstance(msg, ToolMessage):
+            print(f"\n[{idx}] 🔧 TOOL RESULT")
+            
+            # Show tool call ID
+            if hasattr(msg, 'tool_call_id'):
+                print(f"    Tool Call ID: {msg.tool_call_id[:20]}...")
+            
+            # Get content - could be string or list of dicts
+            content = msg.content
+            if isinstance(content, list) and len(content) > 0:
+                # Extract text from first item
+                text_content = content[0].get('text', '') if isinstance(content[0], dict) else str(content[0])
+            else:
+                text_content = str(content)
+            
+            # Show preview of content
+            lines = text_content.split('\n')
+            preview_lines = lines[:3]  # First 3 lines
+            print(f"    Content preview ({len(text_content)} chars, {len(lines)} lines):")
+            for line in preview_lines:
+                if line.strip():
+                    print(f"      {line[:90]}...")
+            
+            # Show if there's structured content in artifact
+            if hasattr(msg, 'artifact') and msg.artifact:
+                print(f"    ✓ Structured artifact available")
+        
+        else:
+            print(f"\n[{idx}] ❓ {type(msg).__name__}")
+            print(f"    Content: {msg.content if hasattr(msg, 'content') else 'N/A'}")
+    
+    print("\n" + "=" * 100)
+    
+    # print("\n" + "=" * 80)
+    # print("\nAgent Response:")
+    # print("=" * 80)
+    # print(response)
 
 if __name__ == "__main__":
     # Run the async main function
