@@ -193,23 +193,11 @@ def search_google_news(
         ])
         
         # Create synthesis prompt
-        prompt = f"""You are a news analyst providing insights from recent news articles.
-
-Query: "{query}"
-Timeframe: Last {days} days
-
-News articles found ({len(articles)} total, showing top {min(len(articles), 15)}):
+        prompt = f"""Summarize the main news about "{query}" from these recent headlines:
 
 {articles_text}
 
-Provide a concise, insightful summary that:
-1. Highlights the key themes and developments
-2. Identifies important facts and patterns
-3. Cites specific sources when mentioning information
-4. Is clear, well-structured, and actionable
-5. Notes any significant trends or breaking developments
-
-Your analysis:"""
+Provide a brief 2-3 sentence summary of what's happening."""
 
         # Get AI synthesis
         llm = get_llm(temperature=0.2)

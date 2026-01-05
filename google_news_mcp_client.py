@@ -81,7 +81,7 @@ SYNTHESIS RULES:
     )
     
     # Example query - you can modify this
-    query = "manchester united sack theri maanger who is next"
+    query = "india oil stocks after us venezuela news"
     
     print(f"Testing query: '{query}'\n")
     print("=" * 80)
