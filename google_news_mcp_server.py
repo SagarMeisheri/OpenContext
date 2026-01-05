@@ -1,7 +1,6 @@
 
 from mcp.server.fastmcp import FastMCP
 from typing import Optional
-import json
 from urllib.parse import quote
 import feedparser
 import requests
@@ -132,59 +131,99 @@ def get_llm(temperature: float = 0.3) -> ChatOpenAI:
 
 
 # ==============================================================================
-# MCP Tool
+# MCP Tools
 # ==============================================================================
 
 @mcp.tool()
-def get_news_headlines(
+def search_google_news(
     query: str,
-    days: int = 7,
-    max_results: int = 50
+    days: int = 7
 ) -> str:
     """
-    Fetch Google News headlines for a query 
+    Search Google News and get AI-synthesized insights about any topic.
     
-    This tool searches Google News for recent articles matching the query and
-    returns headlines with sources and publication dates. The results provide
-    news context about the topic, including what outlets are covering it and
-    when stories were published.
+    This universal tool works for any query - simple or complex. It fetches recent
+    news articles from Google News and uses AI to synthesize key insights, themes,
+    and important information from the articles.
+    
+    For complex topics, agents can call this tool multiple times in parallel with
+    different focused queries, then combine the results.
     
     Args:
-        query: Search terms or topic to find news about (e.g., "artificial intelligence",
-               "climate change", "tech earnings")
+        query: Any search query - can be simple keywords or a complex question
+               Examples: "Tesla stock", "AI regulation", "climate change policy"
         days: Number of days to look back for news (1-30, default 7)
-        max_results: Maximum number of headlines to return (1-50, default 10)
     
     Returns:
-        JSON string with:
-        - List of headlines with titles, sources, and publication dates
-        - Total count of articles found
+        String with AI-synthesized answer and source metadata
     
     Examples:
-        - get_news_headlines("Tesla stock", days=3, max_results=5)
-        - get_news_headlines("Olympics 2024", days=1, max_results=15)
-        - get_news_headlines("artificial intelligence regulation")
+        Simple query:
+            search_google_news("Tesla earnings")
+        
+        Complex topic (agent can parallelize):
+            search_google_news("AI regulation")
+            search_google_news("tech policy")
+            search_google_news("AI ethics")
     """
     try:
         # Validate parameters
         days = max(1, min(days, 30))
-        max_results = max(1, min(max_results, 50))
+        max_results = 20  # Fetch reasonable amount for synthesis
         
-        # Fetch headlines
+        # Fetch headlines from Google News
         result = client.fetch_headlines(
             query=query,
             days=days,
             max_results=max_results
         )
         
-        return json.dumps(result, indent=2)
+        # Check if any articles were found
+        if not result.get("success") or not result.get("articles"):
+            return f"No recent news found for '{query}' in the last {days} days."
+        
+        articles = result["articles"]
+        
+        # Format articles for LLM
+        articles_text = "\n\n".join([
+            f"Title: {article['title']}\n"
+            f"Source: {article.get('source', 'Unknown')}\n"
+            f"Date: {article.get('published', 'Unknown')}"
+            for article in articles[:15]  # Limit to top 15 for context window
+        ])
+        
+        # Create synthesis prompt
+        prompt = f"""You are a news analyst providing insights from recent news articles.
+
+Query: "{query}"
+Timeframe: Last {days} days
+
+News articles found ({len(articles)} total, showing top {min(len(articles), 15)}):
+
+{articles_text}
+
+Provide a concise, insightful summary that:
+1. Highlights the key themes and developments
+2. Identifies important facts and patterns
+3. Cites specific sources when mentioning information
+4. Is clear, well-structured, and actionable
+5. Notes any significant trends or breaking developments
+
+Your analysis:"""
+
+        # Get AI synthesis
+        llm = get_llm(temperature=0.2)
+        response = llm.invoke(prompt)
+        synthesis = response.content
+        
+        # Return simplified response - just the answer
+        total_articles = result.get("total_count", len(articles))
+        num_sources = len(set(a.get("source", "") for a in articles))
+        
+        return f"{synthesis}\n\n---\n[Based on {total_articles} articles from {num_sources} sources, last {days} days]"
         
     except Exception as e:
-        return json.dumps({
-            "success": False,
-            "error": str(e),
-            "query": query
-        }, indent=2)
+        return f"Error searching news for '{query}': {str(e)}"
 
 
 # ==============================================================================
