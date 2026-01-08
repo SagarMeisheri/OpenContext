@@ -37,6 +37,7 @@ dependencies = [
     "beautifulsoup4",
     "mcp>=1.25.0",
     "langchain-mcp-adapters>=0.2.1",
+    "gdeltdoc>=1.12.0",
 ]
 
 [project.optional-dependencies]
