@@ -3,15 +3,15 @@ import pandas as pd
 from llm_service import get_llm
 from gdeltdoc import Filters, near, repeat, multi_repeat
 
-query = "donald trump"
+query = "nvidia"
 f = Filters(
     keyword = query,
     start_date = "2025-01-01",
     end_date = "2025-01-07",
-    language="eng",
-    num_records=50,
-    near=near(10, "trump", "chicago"),
-    repeat = multi_repeat([(2, "trump"), (3, "chicago")], "AND")
+    # language="eng",
+    num_records=200,
+    # near=near(10, "nvidia", "CES"),
+    # repeat = multi_repeat([(2, "gpu"), (2, "rubin")], "AND")
 )
 
 gd = GdeltDoc()
@@ -38,8 +38,7 @@ INPUT: Collection of news headlines (possibly in multiple languages)
 TASK:
 1. Identify main topics and themes across headlines
 2. Note significant events, trends, or patterns
-3. Translate non-English headlines to English where relevant
-4. Work ONLY with what's explicitly stated - no speculation
+3. Work ONLY with what's explicitly stated - no speculation
 
 OUTPUT: Single markdown document with the following sections:
 
@@ -53,9 +52,6 @@ Bullet points of specific events clearly mentioned in headlines.
 
 ## Emerging Patterns
 Any trends or patterns visible across multiple headlines.
-
-## Language Notes
-Brief mention of any translated headlines if relevant.
 
 ## Limitations
 Note any headlines that were unclear or lacked sufficient context.
